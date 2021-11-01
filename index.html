@@ -89,6 +89,10 @@ function run() {
     return;
   }
 
+  // Temporarily disable button.
+  byId("submit").disabled = true;
+  byId("submit").value = "...";
+
   // Start reading the image.
   var file = input.files[0];
   var reader = new FileReader();
@@ -127,6 +131,10 @@ function run() {
       a.download = file.name.replace(pattern, " (passe-partout).png");
       a.href = canvas.toDataURL("image/png");
       a.click();
+
+      // Re-enable button.
+      byId("submit").disabled = false;
+      byId("submit").value = "Passe-partout!";
     };
     image.src = reader.result;
   };
@@ -151,7 +159,7 @@ function run() {
           <option value="h" class="translate">height</option>
         </select>
         <p class="translate">by clicking:</p>
-        <input type="submit" value="Passe-partout!" onclick="run();" />
+        <input id="submit" type="submit" value="Passe-partout!" onclick="run();" />
       </form>
     </div>
     <canvas style="display: none;" id="canvas"></canvas>
