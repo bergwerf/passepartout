@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Passe-partout!</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <script type='text/javascript'>
+function run() {
+  // Check if the FileReader API is available.
+  if (typeof window.FileReader !== 'function') {
+    alert("This tool requires a newer web browser.");
+    return;
+  }
+
+  // Check if a file is selected.
+  var input = document.getElementById("file");
+  if (!input.files) {
+    alert("This tool requires a newer web browser.");
+    return;
+  } else if (!input.files[0]) {
+    alert("No file is selected.");
+    return;
+  }
+
+  // Start reading the image.
+  var file = input.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    // Turn data URL into image object.
+    var image = new Image();
+    image.onload = function() {
+      // Draw image on a canvas with a passe-partout.
+      var canvas = document.getElementById("canvas")
+      canvas.width = image.width;
+      canvas.height = image.height;
+      var ctx = canvas.getContext("2d");
+      ctx.drawImage(image, 0, 0);
+
+      // Create download link and click it.
+      var a = document.createElement("a");
+      var pattern = new RegExp("\.[^/.]+$");
+      a.download = file.name.replace(pattern, " (passe-partout).png");
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    };
+    image.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+    </script>
+  </head>
+  <body>
+    <form action='#' onsubmit="return false;">
+      <input type="file" id="file" />
+      <input type="color" value="#ffffff" />
+      <input type="number" min="100" max="500" value="138" />
+      <select name="unit" value="smallest">
+        <option value="smallest">Smallest side</option>
+        <option value="largest">Largest side</option>
+        <option value="width">Width</option>
+        <option value="height">Height</option>
+      </select>
+      <input type="button" value="Passe-partout!" onclick="run();" />
+    </form>
+    <canvas id="canvas"></canvas>
+  </body>
+</html>
