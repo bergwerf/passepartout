@@ -4,8 +4,75 @@
     <title>Passe-partout!</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        background: #222;
+      }
+
+      #passepartout {
+        margin: 1em;
+        padding: 1em;
+        display: inline-block;
+        text-align: left;
+        background: #fff;
+        border-radius: 2px;
+      }
+
+      #form {
+        margin: 0;
+        padding: 0em 1em 1em 1em;
+        display: inline-block;
+        background: #af7;
+        background: linear-gradient(-45deg, #af7, #8ff);
+        border: 3px solid #fff;
+        border-top-color: #aaa;
+        border-left-color: #bbb;
+        border-right-color: #ccc;
+        border-bottom-color: #ddd;
+      }
+
+      @media only screen and (min-width: 700px) {
+        #passepartout {
+          margin: 2em;
+          padding: 5em;
+        }
+
+        #form {
+          padding: 1em 2em 2em 2em;
+        }
+      }
+
+      body, input, select {
+        font-family: system-ui;
+        font-size: 12pt;
+      }
+    </style>
     <script type='text/javascript'>
+var dutch = {
+  "Add a passe-partout to": "Voeg een passe-partout toe aan",
+  "with color": "met kleur",
+  "and size": "en grootte",
+  "as a percentage relative to the": "als percentage relatief tot de",
+  "smallest side": "kleinste zijde",
+  "largest side": "grootste zijde",
+  "width": "breedte",
+  "height": "hoogte",
+  "by clicking:": "door te klikken op:",
+}
+
+function byId(id) {
+  return document.getElementById(id);
+}
+
 function run() {
+  // Validate form.
+  if (!byId("form").reportValidity()) {
+    return;
+  }
+
   // Check if the FileReader API is available.
   if (typeof window.FileReader !== 'function') {
     alert("This tool requires a newer web browser.");
@@ -13,7 +80,7 @@ function run() {
   }
 
   // Check if a file is selected.
-  var input = document.getElementById("file");
+  var input = byId("file");
   if (!input.files) {
     alert("This tool requires a newer web browser.");
     return;
@@ -29,12 +96,30 @@ function run() {
     // Turn data URL into image object.
     var image = new Image();
     image.onload = function() {
+      // Get parameters.
+      var color = byId("color").value;
+      var size = 1 - 100 / parseInt(byId("size").value);
+      var unit = byId("unit").value;
+      var w = image.width;
+      var h = image.height;
+
+      // Compute absolute border size.
+      var border = 0;
+      switch (unit) {
+        case "s": border = size * Math.min(w, h); break;
+        case "l": border = size * Math.max(w, h); break;
+        case "w": border = size * w; break;
+        case "h": border = size * h; break;
+      }
+
       // Draw image on a canvas with a passe-partout.
-      var canvas = document.getElementById("canvas")
-      canvas.width = image.width;
-      canvas.height = image.height;
+      var canvas = byId("canvas")
+      canvas.width = w + 2 * border;
+      canvas.height = h + 2 * border;
       var ctx = canvas.getContext("2d");
-      ctx.drawImage(image, 0, 0);
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(image, border, border);
 
       // Create download link and click it.
       var a = document.createElement("a");
@@ -50,18 +135,32 @@ function run() {
     </script>
   </head>
   <body>
-    <form action='#' onsubmit="return false;">
-      <input type="file" id="file" />
-      <input type="color" value="#ffffff" />
-      <input type="number" min="100" max="500" value="138" />
-      <select name="unit" value="smallest">
-        <option value="smallest">Smallest side</option>
-        <option value="largest">Largest side</option>
-        <option value="width">Width</option>
-        <option value="height">Height</option>
-      </select>
-      <input type="button" value="Passe-partout!" onclick="run();" />
-    </form>
-    <canvas id="canvas"></canvas>
+    <div id="passepartout">
+      <form id="form" action='#' onsubmit="return false;">
+        <p class="translate">Add a passe-partout to</p>
+        <input id="file" type="file" required />
+        <p class="translate">with color</p>
+        <input id="color" type="color" value="#ffffff" required />
+        <p class="translate">and size</p>
+        <input id="size" type="number" min="100" max="500" value="138" required />
+        <p class="translate">as a percentage relative to the</p>
+        <select id="unit" value="s">
+          <option value="s" class="translate">smallest side</option>
+          <option value="l" class="translate">largest side</option>
+          <option value="w" class="translate">width</option>
+          <option value="h" class="translate">height</option>
+        </select>
+        <p class="translate">by clicking:</p>
+        <input type="submit" value="Passe-partout!" onclick="run();" />
+      </form>
+    </div>
+    <canvas style="display: none;" id="canvas"></canvas>
+    <script>
+      if (navigator.language.includes("nl")) {
+        for (var element of document.getElementsByClassName("translate")) {
+          element.innerText = dutch[element.innerText] || "?";
+        }
+      }
+    </script>
   </body>
 </html>
